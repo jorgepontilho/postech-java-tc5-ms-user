@@ -1,0 +1,36 @@
+services:
+  mysql-user:
+    image: mysql:latest
+    restart: always
+    container_name: mysql-user
+    hostname: "mysql-user"
+    environment:
+      MYSQL_DATABASE: 'userdb'
+      MYSQL_USER: 'user'
+      MYSQL_PASSWORD: '12345'
+      MYSQL_ROOT_PASSWORD: '54321'
+    ports:
+      - '3306:3306'
+    networks:
+      - my_network
+
+
+  msuser:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - mysql-user
+    hostname: "ms-user"
+    environment:
+      MYSQL_HOSTNAME: mysql-user
+      MYSQL_PORT: 3306
+    ports:
+      - 8080:8080
+    networks:
+      - my_network
+
+networks:
+  my_network:
+    driver: bridge
+    external: true
