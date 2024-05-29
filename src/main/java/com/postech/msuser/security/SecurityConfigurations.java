@@ -25,38 +25,38 @@ public class SecurityConfigurations {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
-                .csrf(AbstractHttpConfigurer::disable)
+                .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(
-                        authorizeConfig -> {
-                            authorizeConfig.requestMatchers(
-                                            "/swagger-ui/**", "/swagger-resources/**"
-                                            , "/v3/api-docs", "/v3/api-docs/**", "/webjars/**")
-                                    .permitAll();
+                .authorizeHttpRequests(authorizeConfig -> {
+                    authorizeConfig.requestMatchers(
+                                    "/swagger-ui/**", "/swagger-resources/**",
+                                    "/v3/api-docs", "/v3/api-docs/**", "/webjars/**", "")
+                            .permitAll();
 
-                            authorizeConfig.requestMatchers(HttpMethod.POST
-                                            , "/users/login")
-                                    .permitAll();
+                    authorizeConfig.requestMatchers(HttpMethod.POST, "/users/login")
+                            .permitAll();
 
-                            authorizeConfig.requestMatchers(
-                                            "/users", "/users/**")
-                                    .permitAll()
-                                    .anyRequest()
-                                    .authenticated();
+                    authorizeConfig.requestMatchers(HttpMethod.GET, "/users/token", "/users/token/**")
+                            .permitAll();
 
-                            /**************************
-                             authorizeConfig.requestMatchers(
-                                    "/users").hasRole("ADMIN")
-                             .anyRequest()
-                             .authenticated();
+                    authorizeConfig.requestMatchers("/users", "/users/**")
+                            .permitAll().anyRequest().authenticated();
 
-                             authorizeConfig.requestMatchers(
-                                    "/users", "/users/**")
-                             .permitAll()
-                             .anyRequest()
-                             .authenticated();
-                             *****************/
-                        }).addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
+                    /**************************
+                     authorizeConfig.anyRequest().authenticated();
+
+                     authorizeConfig.requestMatchers(
+                     "/users").hasRole("ADMIN")
+                     .anyRequest()
+                     .authenticated();
+
+                     authorizeConfig.requestMatchers(
+                     "/users", "/users/**")
+                     .permitAll()
+                     .anyRequest()
+                     .authenticated();
+                     *******************************************/
+                }).addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 

@@ -5,6 +5,7 @@ import com.postech.msuser.entity.User;
 import com.postech.msuser.gateway.UserGateway;
 import com.postech.msuser.request.UserAuthRequest;
 import com.postech.msuser.response.UserResponse;
+import com.postech.msuser.security.SecurityFilter;
 import com.postech.msuser.usecase.UserUseCase;
 import com.postech.msuser.security.TokenService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -19,6 +20,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -30,10 +33,10 @@ import java.util.List;
 public class UserController {
 
     @Autowired
-    private AuthenticationManager authenticationManager;
+    private TokenService tokenService;
 
     @Autowired
-    private TokenService tokenService;
+    private SecurityFilter securityFilter;
 
     private final UserGateway userGateway;
 
@@ -61,15 +64,37 @@ public class UserController {
     }
 
     @PostMapping("/login")
+    @Operation(summary = "Get Token by Login and Password", responses = {
+            @ApiResponse(description = "The Token by login", responseCode = "200", content = @Content(schema = @Schema(implementation = User.class))),
+            @ApiResponse(description = "User Not Found", responseCode = "404", content = @Content(schema = @Schema(type = "string", example = "Login ou senha inválida.")))
+    })
     public ResponseEntity login(@RequestBody @Valid UserAuthRequest data) {
-        var usernamePassword = new UsernamePasswordAuthenticationToken(data.login(), data.password());
-        var auth = this.authenticationManager.authenticate(usernamePassword);
-
-        var token = tokenService.generateToken((User) auth.getPrincipal());
-
-        return ResponseEntity.ok(new UserResponse(token));
+        log.info("PostMapping - Login for user [{}]", data);
+        try {
+            User user = userGateway.findByLoginAndPassword(data.login(), data.password());
+            if (user == null) {
+                return new ResponseEntity<>("Login ou Senha inválida.", HttpStatus.BAD_REQUEST);
+            }
+            String token = tokenService.generateToken(user);
+            return ResponseEntity.ok(new UserResponse(token));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 
+    @GetMapping("/token/{token}")
+    @Operation(summary = "Valid Token", responses = {
+            @ApiResponse(description = "The user by token", responseCode = "200", content = @Content(schema = @Schema(implementation = User.class))),
+            @ApiResponse(description = "User Not Found", responseCode = "404", content = @Content(schema = @Schema(type = "string", example = "Token inválido.")))
+    })
+    public ResponseEntity<?> validToken(@PathVariable String token) {
+        log.info("GetMapping - validToken");
+        User user = securityFilter.validToken(token);
+        if (user != null) {
+            return new ResponseEntity<>(user, HttpStatus.OK);
+        }
+        return new ResponseEntity<>("Token inválido.", HttpStatus.NOT_FOUND);
+    }
     @GetMapping("")
     @Operation(summary = "Request for list all users", responses = {
             @ApiResponse(description = "User's list", responseCode = "200"),
@@ -108,7 +133,7 @@ public class UserController {
             userNew.setId(id);
             UserUseCase.validarUsuario(userNew);
 
-            if (!userNew.getLogin().equals(userOld.getLogin()) ) {
+            if (!userNew.getLogin().equals(userOld.getLogin())) {
                 return new ResponseEntity<>("Não é permitido alterar o Login.", HttpStatus.BAD_REQUEST);
             }
 

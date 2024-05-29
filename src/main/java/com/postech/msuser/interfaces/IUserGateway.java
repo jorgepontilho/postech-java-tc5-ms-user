@@ -13,6 +13,8 @@ public interface IUserGateway {
 
     public User findById(Integer id);
 
+    User findByLoginAndPassword(String login, String password);
+
     public User findByLogin(String login);
 
     public List<User> listAllUsers();

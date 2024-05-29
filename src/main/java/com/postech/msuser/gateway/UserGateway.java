@@ -5,6 +5,7 @@ import com.postech.msuser.interfaces.IUserGateway;
 import com.postech.msuser.repository.UserRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 
@@ -46,6 +47,21 @@ public class UserGateway implements IUserGateway {
     public User findById(Integer id) {
         try {
             return userRepository.findById(id).orElseThrow();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    @Override
+    public User findByLoginAndPassword(String login, String password) {
+        try {
+            PasswordEncoder encoder = new BCryptPasswordEncoder();
+            User user = userRepository.findByLogin(login);
+            if (encoder.matches(password, user.getPassword())) {
+                return user;
+            } else {
+                return null;
+            }
         } catch (Exception e) {
             return null;
         }

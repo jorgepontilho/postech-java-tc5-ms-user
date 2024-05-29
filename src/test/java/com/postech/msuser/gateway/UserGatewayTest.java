@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
+import com.postech.msuser.util.UserUtilTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -31,7 +32,7 @@ public class UserGatewayTest {
 
     @Test
     void testCreateUser_ValidInput_ReturnsUser() {
-        User user = new User();
+        User user = UserUtilTest.createUser();
         when(userRepository.save(user)).thenReturn(user);
         User result = userGateway.createUser(user);
         assertEquals(user, result);
