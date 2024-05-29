@@ -1,0 +1,139 @@
+package com.postech.msuser.controller;
+
+import com.postech.msuser.dto.UserDTO;
+import com.postech.msuser.entity.User;
+import com.postech.msuser.gateway.UserGateway;
+import com.postech.msuser.request.UserAuthRequest;
+import com.postech.msuser.response.UserResponse;
+import com.postech.msuser.usecase.UserUseCase;
+import com.postech.msuser.security.TokenService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@Slf4j
+@RestController
+@RequestMapping("/users")
+@RequiredArgsConstructor
+public class UserController {
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private TokenService tokenService;
+
+    private final UserGateway userGateway;
+
+    @PostMapping("")
+    @Operation(summary = "Request for create a user", responses = {
+            @ApiResponse(description = "The new users was created", responseCode = "201", content = @Content(schema = @Schema(implementation = User.class))),
+            @ApiResponse(description = "Fields Invalid", responseCode = "400", content = @Content(schema = @Schema(type = "string", example = "Campos inválidos ou faltando")))
+    })
+    public ResponseEntity<?> createUser(@Valid @RequestBody UserDTO userDTO) {
+        log.info("PostMapping - createUser for user [{}]", userDTO.getUsername());
+        try {
+            User userNew = new User(userDTO);
+            UserUseCase.validarUsuario(userNew);
+
+            User user = userGateway.findByLogin(userNew.getLogin());
+            if (user != null) {
+                return new ResponseEntity<>("Login já existe.", HttpStatus.BAD_REQUEST);
+            }
+
+            User userCreated = userGateway.createUser(userNew);
+            return new ResponseEntity<>(userCreated, HttpStatus.CREATED);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity login(@RequestBody @Valid UserAuthRequest data) {
+        var usernamePassword = new UsernamePasswordAuthenticationToken(data.login(), data.password());
+        var auth = this.authenticationManager.authenticate(usernamePassword);
+
+        var token = tokenService.generateToken((User) auth.getPrincipal());
+
+        return ResponseEntity.ok(new UserResponse(token));
+    }
+
+    @GetMapping("")
+    @Operation(summary = "Request for list all users", responses = {
+            @ApiResponse(description = "User's list", responseCode = "200"),
+    })
+    public ResponseEntity<List<User>> listAllUsers() {
+        log.info("GetMapping - listUsers");
+        List<User> users = userGateway.listAllUsers();
+        return new ResponseEntity<>(users, HttpStatus.OK);
+    }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "Get only user by ID", responses = {
+            @ApiResponse(description = "The user by ID", responseCode = "200", content = @Content(schema = @Schema(implementation = User.class))),
+            @ApiResponse(description = "User Not Found", responseCode = "404", content = @Content(schema = @Schema(type = "string", example = "Usuário não encontrado.")))
+    })
+    public ResponseEntity<?> findUser(@PathVariable Integer id) {
+        log.info("GetMapping - FindUser");
+        User user = userGateway.findById(id);
+        if (user != null) {
+            return new ResponseEntity<>(user, HttpStatus.OK);
+        }
+        return new ResponseEntity<>("Usuário não encontrado.", HttpStatus.NOT_FOUND);
+    }
+
+    @PutMapping("/{id}")
+    @Operation(summary = "Request for update a user by ID", responses = {
+            @ApiResponse(description = "The users was updated", responseCode = "200", content = @Content(schema = @Schema(implementation = User.class)))
+    })
+    public ResponseEntity<?> updateUser(@PathVariable Integer id, @RequestBody @Valid UserDTO userDTO) {
+        log.info("PutMapping - updateUser");
+        try {
+            User userOld = userGateway.findById(id);
+            UserUseCase.validarUsuario(userOld);
+
+            User userNew = new User(userDTO);
+            userNew.setId(id);
+            UserUseCase.validarUsuario(userNew);
+
+            if (!userNew.getLogin().equals(userOld.getLogin()) ) {
+                return new ResponseEntity<>("Não é permitido alterar o Login.", HttpStatus.BAD_REQUEST);
+            }
+
+            userNew = userGateway.updateUser(userNew);
+            return new ResponseEntity<>(userNew, HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Delete a user by ID", responses = {
+            @ApiResponse(description = "The user was deleted", responseCode = "200", content = @Content(schema = @Schema(type = "string", example = "Usuário removido."))),
+            @ApiResponse(description = "User Not Found", responseCode = "404", content = @Content(schema = @Schema(type = "string", example = "Usuário não encontrado.")))
+    })
+    public ResponseEntity<?> deleteUser(@PathVariable Integer id) {
+        log.info("DeleteMapping - deleteUser");
+        try {
+            User user = userGateway.findById(id);
+            UserUseCase.validarDeleteUsuario(user);
+            userGateway.deleteUser(id);
+            return new ResponseEntity<>("Usuário removido.", HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+}
+

@@ -6,7 +6,7 @@ services:
     hostname: "mysql-user"
     environment:
       MYSQL_DATABASE: 'userdb'
-      MYSQL_USER: 'user'
+      MYSQL_USER: 'user_mysql'
       MYSQL_PASSWORD: 'mSq@2024*PtEc'
       MYSQL_ROOT_PASSWORD: 'mSqR@@t*2024p@s'
     ports:
