@@ -28,7 +28,7 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
 
@@ -48,18 +48,77 @@ public class UserController {
     public ResponseEntity<?> createUser(@Valid @RequestBody UserDTO userDTO) {
         log.info("PostMapping - createUser for user [{}]", userDTO.getUsername());
         try {
-            User userNew = new User(userDTO);
-            UserUseCase.validarUsuario(userNew);
-
-            User user = userGateway.findByLogin(userNew.getLogin());
-            if (user != null) {
+            UserUseCase.validarUsuario(userDTO);
+            if (userGateway.findByLogin(userDTO.getLogin()) != null) {
                 return new ResponseEntity<>("Login já existe.", HttpStatus.BAD_REQUEST);
             }
-
-            User userCreated = userGateway.createUser(userNew);
+            UserDTO userCreated = userGateway.createUser(userDTO);
             return new ResponseEntity<>(userCreated, HttpStatus.CREATED);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "Get only user by ID", responses = {
+            @ApiResponse(description = "The user by ID", responseCode = "200", content = @Content(schema = @Schema(implementation = User.class))),
+            @ApiResponse(description = "User Not Found", responseCode = "404", content = @Content(schema = @Schema(type = "string", example = "Usuário não encontrado.")))
+    })
+    public ResponseEntity<?> findUser(@PathVariable Integer id) {
+        log.info("GetMapping - FindUser");
+        UserDTO userDTO = userGateway.findById(id);
+        if (userDTO != null) {
+            return new ResponseEntity<>(userDTO, HttpStatus.OK);
+        }
+        return new ResponseEntity<>("Usuário não encontrado.", HttpStatus.NOT_FOUND);
+    }
+
+    @GetMapping("")
+    @Operation(summary = "Request for list all users", responses = {
+            @ApiResponse(description = "User's list", responseCode = "200"),
+    })
+    public ResponseEntity<?> listAllUsers() {
+        return new ResponseEntity<>(userGateway.listAll(), HttpStatus.OK);
+    }
+
+    @PutMapping("/{id}")
+    @Operation(summary = "Request for update a user by ID", responses = {
+            @ApiResponse(description = "The users was updated", responseCode = "200", content = @Content(schema = @Schema(implementation = User.class)))
+    })
+    public ResponseEntity<?> updateUser(@PathVariable Integer id, @RequestBody @Valid UserDTO userDTO) {
+        log.info("PutMapping - updateUser");
+        try {
+            UserDTO userOld = userGateway.findById(id);
+            UserUseCase.validarUsuario(userOld);
+
+            userDTO.setId(id);
+            UserUseCase.validarUsuario(userDTO);
+
+            if (!userDTO.getLogin().equals(userOld.getLogin())) {
+                return new ResponseEntity<>("Não é permitido alterar o Login.", HttpStatus.BAD_REQUEST);
+            }
+
+            userDTO = userGateway.updateUser(userDTO);
+            return new ResponseEntity<>(userDTO, HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Delete a user by ID", responses = {
+            @ApiResponse(description = "The user was deleted", responseCode = "200", content = @Content(schema = @Schema(type = "string", example = "Usuário removido."))),
+            @ApiResponse(description = "User Not Found", responseCode = "404", content = @Content(schema = @Schema(type = "string", example = "Usuário não encontrado.")))
+    })
+    public ResponseEntity<?> deleteUser(@PathVariable Integer id) {
+        log.info("DeleteMapping - deleteUser");
+        try {
+            UserDTO userDTO = userGateway.findById(id);
+            UserUseCase.validarDeleteUsuario(userDTO);
+            userGateway.deleteUser(id);
+            return new ResponseEntity<>("Usuário removido.", HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 
@@ -71,11 +130,11 @@ public class UserController {
     public ResponseEntity login(@RequestBody @Valid UserAuthRequest data) {
         log.info("PostMapping - Login for user [{}]", data);
         try {
-            User user = userGateway.findByLoginAndPassword(data.login(), data.password());
-            if (user == null) {
+            UserDTO userDTO = userGateway.findByLoginAndPassword(data.login(), data.password());
+            if (userDTO == null) {
                 return new ResponseEntity<>("Login ou Senha inválida.", HttpStatus.BAD_REQUEST);
             }
-            String token = tokenService.generateToken(user);
+            String token = tokenService.generateToken(userDTO);
             return ResponseEntity.ok(new UserResponse(token));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
@@ -95,70 +154,8 @@ public class UserController {
         }
         return new ResponseEntity<>("Token inválido.", HttpStatus.NOT_FOUND);
     }
-    @GetMapping("")
-    @Operation(summary = "Request for list all users", responses = {
-            @ApiResponse(description = "User's list", responseCode = "200"),
-    })
-    public ResponseEntity<List<User>> listAllUsers() {
-        log.info("GetMapping - listUsers");
-        List<User> users = userGateway.listAllUsers();
-        return new ResponseEntity<>(users, HttpStatus.OK);
-    }
 
-    @GetMapping("/{id}")
-    @Operation(summary = "Get only user by ID", responses = {
-            @ApiResponse(description = "The user by ID", responseCode = "200", content = @Content(schema = @Schema(implementation = User.class))),
-            @ApiResponse(description = "User Not Found", responseCode = "404", content = @Content(schema = @Schema(type = "string", example = "Usuário não encontrado.")))
-    })
-    public ResponseEntity<?> findUser(@PathVariable Integer id) {
-        log.info("GetMapping - FindUser");
-        User user = userGateway.findById(id);
-        if (user != null) {
-            return new ResponseEntity<>(user, HttpStatus.OK);
-        }
-        return new ResponseEntity<>("Usuário não encontrado.", HttpStatus.NOT_FOUND);
-    }
 
-    @PutMapping("/{id}")
-    @Operation(summary = "Request for update a user by ID", responses = {
-            @ApiResponse(description = "The users was updated", responseCode = "200", content = @Content(schema = @Schema(implementation = User.class)))
-    })
-    public ResponseEntity<?> updateUser(@PathVariable Integer id, @RequestBody @Valid UserDTO userDTO) {
-        log.info("PutMapping - updateUser");
-        try {
-            User userOld = userGateway.findById(id);
-            UserUseCase.validarUsuario(userOld);
 
-            User userNew = new User(userDTO);
-            userNew.setId(id);
-            UserUseCase.validarUsuario(userNew);
-
-            if (!userNew.getLogin().equals(userOld.getLogin())) {
-                return new ResponseEntity<>("Não é permitido alterar o Login.", HttpStatus.BAD_REQUEST);
-            }
-
-            userNew = userGateway.updateUser(userNew);
-            return new ResponseEntity<>(userNew, HttpStatus.OK);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
-    }
-
-    @DeleteMapping("/{id}")
-    @Operation(summary = "Delete a user by ID", responses = {
-            @ApiResponse(description = "The user was deleted", responseCode = "200", content = @Content(schema = @Schema(type = "string", example = "Usuário removido."))),
-            @ApiResponse(description = "User Not Found", responseCode = "404", content = @Content(schema = @Schema(type = "string", example = "Usuário não encontrado.")))
-    })
-    public ResponseEntity<?> deleteUser(@PathVariable Integer id) {
-        log.info("DeleteMapping - deleteUser");
-        try {
-            User user = userGateway.findById(id);
-            UserUseCase.validarDeleteUsuario(user);
-            userGateway.deleteUser(id);
-            return new ResponseEntity<>("Usuário removido.", HttpStatus.OK);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        }
-    }
 }
 

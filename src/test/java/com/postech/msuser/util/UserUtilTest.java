@@ -12,6 +12,7 @@ public class UserUtilTest {
 
     public static UserDTO createUserDTO() {
         return new UserDTO(
+                1000,
                 "John Doe",
                 "john.doe@mail.com",
                 "jonh",

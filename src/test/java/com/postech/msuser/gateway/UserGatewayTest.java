@@ -1,9 +1,11 @@
 package com.postech.msuser.gateway;
 
+import com.postech.msuser.dto.UserDTO;
 import com.postech.msuser.entity.User;
 import com.postech.msuser.repository.UserRepository;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
@@ -33,16 +35,16 @@ public class UserGatewayTest {
     @Test
     void testCreateUser_ValidInput_ReturnsUser() {
         User user = UserUtilTest.createUser();
-        when(userRepository.save(user)).thenReturn(user);
-        User result = userGateway.createUser(user);
+        when(userRepository.save(any())).thenReturn(user);
+        User result = userGateway.createUser(user.toDTO()).toEntity();
         assertEquals(user, result);
     }
 
     @Test
     void testUpdateUser_ValidInput_ReturnsUser() {
-        User user = new User();
-        when(userRepository.save(user)).thenReturn(user);
-        User result = userGateway.updateUser(user);
+        User user = UserUtilTest.createUser();
+        when(userRepository.save(any())).thenReturn(user);
+        User result = userGateway.updateUser(user.toDTO()).toEntity();
         assertEquals(user, result);
     }
 
@@ -57,19 +59,19 @@ public class UserGatewayTest {
 
     @Test
     void testFindUser_ValidInput_ReturnsUser() {
-        Random random = new Random();
-        int id = random.nextInt();
-        User expectedUser = new User();
+        User expectedUser = UserUtilTest.createUser();
+        int id = expectedUser.getId();
         when(userRepository.findById(id)).thenReturn(Optional.of(expectedUser));
-        User result = userGateway.findById(id);
+        User result = userGateway.findById(id).toEntity();
         assertEquals(expectedUser, result);
     }
 
     @Test
     void testListAllUsers_ReturnsListOfUsers() {
-        List<User> expectedUsers = List.of(new User(), new User());
+        List<User> expectedUsers = List.of(UserUtilTest.createUser(), UserUtilTest.createUser());
+        List<UserDTO> expectedUsersDTO = List.of(UserUtilTest.createUserDTO(), UserUtilTest.createUserDTO());
         when(userRepository.findAll()).thenReturn(expectedUsers);
-        List<User> result = userGateway.listAllUsers();
-        assertEquals(expectedUsers, result);
+        List<UserDTO> result = userGateway.listAll();
+        assertEquals(expectedUsersDTO, result);
     }
 }

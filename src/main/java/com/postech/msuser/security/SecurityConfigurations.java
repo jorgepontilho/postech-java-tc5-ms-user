@@ -8,7 +8,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -33,25 +32,25 @@ public class SecurityConfigurations {
                                     "/v3/api-docs", "/v3/api-docs/**", "/webjars/**", "")
                             .permitAll();
 
-                    authorizeConfig.requestMatchers(HttpMethod.POST, "/users/login")
+                    authorizeConfig.requestMatchers(HttpMethod.POST, "/api/users/login")
                             .permitAll();
 
-                    authorizeConfig.requestMatchers(HttpMethod.GET, "/users/token", "/users/token/**")
+                    authorizeConfig.requestMatchers(HttpMethod.GET, "/api/users/token", "/api/users/token/**")
                             .permitAll();
 
-                    authorizeConfig.requestMatchers("/users", "/users/**")
+                    authorizeConfig.requestMatchers("/api/users", "/api/users/**")
                             .permitAll().anyRequest().authenticated();
 
                     /**************************
                      authorizeConfig.anyRequest().authenticated();
 
                      authorizeConfig.requestMatchers(
-                     "/users").hasRole("ADMIN")
+                     "/api/users").hasRole("ADMIN")
                      .anyRequest()
                      .authenticated();
 
                      authorizeConfig.requestMatchers(
-                     "/users", "/users/**")
+                     "/api/users", "/api/users/**")
                      .permitAll()
                      .anyRequest()
                      .authenticated();

@@ -38,7 +38,7 @@ class UserControllerTest {
         @Test
         void devePermitirRegistrarUsuario() {
             UserDTO userDTO = UserUtilTest.createUserDTO();
-            when(userGateway.createUser(any())).thenReturn(new User());
+            when(userGateway.createUser(any())).thenReturn(new UserDTO());
             ResponseEntity<?> response = userController.createUser(userDTO);
             assertEquals(HttpStatus.CREATED, response.getStatusCode());
         }
@@ -56,7 +56,7 @@ class UserControllerTest {
         @Test
         void devePermitirPesquisarUmUsuario() {
             int id = 123;
-            User user = new User();
+            UserDTO user = new UserDTO();
             when(userGateway.findById(id)).thenReturn(user);
             ResponseEntity<?> response = userController.findUser(id);
             assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -65,12 +65,12 @@ class UserControllerTest {
 
         @Test
         void devePermitirListarTodosUsuarios() {
-            List<User> users = new ArrayList<>();
-            users.add(new User());
-            users.add(new User());
+            List<UserDTO> users = new ArrayList<>();
+            users.add(new UserDTO());
+            users.add(new UserDTO());
 
-            when(userGateway.listAllUsers()).thenReturn(users);
-            ResponseEntity<List<User>> response = userController.listAllUsers();
+            when(userGateway.listAll()).thenReturn(users);
+            ResponseEntity<List<UserDTO>> response = (ResponseEntity<List<UserDTO>>) userController.listAllUsers();
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertEquals(users, response.getBody());
         }
@@ -89,7 +89,7 @@ class UserControllerTest {
     class UpdateUser {
         @Test
         void devePermitirAtualizarUsuario() {
-            User userNew = UserUtilTest.createUser();
+            UserDTO userNew = UserUtilTest.createUserDTO();
             when(userGateway.findById(userNew.getId())).thenReturn(userNew);
             when(userGateway.updateUser(userNew)).thenReturn(userNew);
 
@@ -110,7 +110,7 @@ class UserControllerTest {
     class DeleteUser {
         @Test
         void devePermitirApagarUsuario() {
-            User user =  UserUtilTest.createUser();;
+            UserDTO user =  UserUtilTest.createUserDTO();;
             when(userGateway.findById(user.getId())).thenReturn(user);
             ResponseEntity<?> response = userController.deleteUser(user.getId());
             assertEquals(HttpStatus.OK, response.getStatusCode());

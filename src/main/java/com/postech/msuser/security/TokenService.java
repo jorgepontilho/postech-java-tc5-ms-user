@@ -3,6 +3,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 
+import com.postech.msuser.dto.UserDTO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -17,12 +18,12 @@ public class TokenService {
     @Value("${api.security.token.secret}")
     private String secret;
 
-    public String generateToken(User user){
+    public String generateToken(UserDTO userDTO){
         try{
             Algorithm algorithm = Algorithm.HMAC256(secret);
             String token = JWT.create()
                     .withIssuer("auth-api")
-                    .withSubject(user.getLogin())
+                    .withSubject(userDTO.getLogin())
                     .withExpiresAt(genExpirationDate())
                     .sign(algorithm);
             return token;

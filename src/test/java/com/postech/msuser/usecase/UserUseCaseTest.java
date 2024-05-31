@@ -11,7 +11,7 @@ public class UserUseCaseTest {
     @Test
     void testValidarUsuario_OK() {
         User user = UserUtilTest.createUser();
-        assertDoesNotThrow(() -> UserUseCase.validarUsuario(user));
+        assertDoesNotThrow(() -> UserUseCase.validarUsuario(user.toDTO()));
     }
 
     @Test
@@ -23,13 +23,13 @@ public class UserUseCaseTest {
     void testValidarUsuario_Senha_Invalida() {
         User user = UserUtilTest.createUser();
         user.setPassword("");
-        assertThrows(IllegalArgumentException.class, () -> UserUseCase.validarUsuario(user));
+        assertThrows(IllegalArgumentException.class, () -> UserUseCase.validarUsuario(user.toDTO()));
     }
 
     @Test
     void testValidarDeleteUsuario_ok() {
         User user = UserUtilTest.createUser();
-        assertDoesNotThrow(() -> UserUseCase.validarDeleteUsuario(user));
+        assertDoesNotThrow(() -> UserUseCase.validarDeleteUsuario(user.toDTO()));
     }
 
     @Test

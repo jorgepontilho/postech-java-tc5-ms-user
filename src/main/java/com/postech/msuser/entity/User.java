@@ -20,10 +20,9 @@ import java.util.Random;
 @NoArgsConstructor
 @AllArgsConstructor
 public class User implements UserDetails {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
     private String username;
     private String email;
     private String login;
@@ -32,8 +31,12 @@ public class User implements UserDetails {
     private UserRole role;
 
     public User(UserDTO UserDTO) {
-        Random random = new Random();
-        this.id = random.nextInt();
+        if (UserDTO.getId() == 0) {
+            Random random = new Random();
+            this.id = random.nextInt();
+        } else {
+            this.id = UserDTO.getId();
+        }
         this.username = UserDTO.getUsername();
         this.email = UserDTO.getEmail();
         this.login = UserDTO.getLogin();
@@ -42,19 +45,32 @@ public class User implements UserDetails {
         setRole(UserDTO.getRole());
     }
 
+    public UserDTO toDTO() {
+        return new UserDTO(
+                this.id,
+                this.username,
+                this.email,
+                this.login,
+                this.password,
+                this.passwordConfirmation,
+                this.role.toString()
+        );
+    }
     public void setRole(String role) {
-        if (role.equals(UserRole.ADMIN.toString())) {
-            this.role = UserRole.ADMIN;
-        } else {
-            this.role = UserRole.USER;
+          for (UserRole rule : UserRole.values()) {
+            if (role.equals(rule.toString())) {
+                this.role = rule;
+            }
         }
+
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         if (this.role == UserRole.ADMIN)
             return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"), new SimpleGrantedAuthority("ROLE_USER"));
-        else return List.of(new SimpleGrantedAuthority("ROLE_USER"));
+        else
+            return List.of(new SimpleGrantedAuthority("ROLE_USER"));
     }
 
     @Override

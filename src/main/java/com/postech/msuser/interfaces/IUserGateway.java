@@ -1,21 +1,19 @@
 package com.postech.msuser.interfaces;
-
-import com.postech.msuser.entity.User;
-
+import com.postech.msuser.dto.UserDTO;
 import java.util.List;
 
 public interface IUserGateway {
-    public User createUser(User user);
+    public UserDTO createUser(UserDTO user);
 
-    public User updateUser(User user);
+    public UserDTO updateUser(UserDTO user);
 
     public boolean deleteUser(Integer id);
 
-    public User findById(Integer id);
+    public UserDTO findById(Integer id);
 
-    User findByLoginAndPassword(String login, String password);
+    public List<UserDTO> listAll();
 
-    public User findByLogin(String login);
+    public UserDTO findByLoginAndPassword(String login, String password);
 
-    public List<User> listAllUsers();
+    public UserDTO findByLogin(String login);
 }
