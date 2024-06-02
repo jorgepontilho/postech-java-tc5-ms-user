@@ -154,8 +154,5 @@ public class UserController {
         }
         return new ResponseEntity<>("Token inválido.", HttpStatus.NOT_FOUND);
     }
-
-
-
 }
 

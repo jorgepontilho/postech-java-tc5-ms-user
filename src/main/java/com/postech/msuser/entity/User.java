@@ -31,12 +31,7 @@ public class User implements UserDetails {
     private UserRole role;
 
     public User(UserDTO UserDTO) {
-        if (UserDTO.getId() == 0) {
-            Random random = new Random();
-            this.id = random.nextInt();
-        } else {
-            this.id = UserDTO.getId();
-        }
+        this.id = UserDTO.getId();
         this.username = UserDTO.getUsername();
         this.email = UserDTO.getEmail();
         this.login = UserDTO.getLogin();
@@ -57,12 +52,11 @@ public class User implements UserDetails {
         );
     }
     public void setRole(String role) {
-          for (UserRole rule : UserRole.values()) {
-            if (role.equals(rule.toString())) {
-                this.role = rule;
+        for (UserRole userRole : UserRole.values()) {
+            if (role.equals(userRole.toString())) {
+                this.role = userRole;
             }
         }
-
     }
 
     @Override
