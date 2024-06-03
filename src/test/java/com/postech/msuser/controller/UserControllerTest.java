@@ -3,6 +3,9 @@ package com.postech.msuser.controller;
 import com.postech.msuser.dto.UserDTO;
 import com.postech.msuser.entity.User;
 import com.postech.msuser.gateway.UserGateway;
+import com.postech.msuser.request.UserAuthRequest;
+import com.postech.msuser.security.SecurityFilter;
+import com.postech.msuser.security.TokenService;
 import com.postech.msuser.util.UserUtilTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -24,9 +27,12 @@ class UserControllerTest {
 
     @Mock
     private UserGateway userGateway;
-
     @InjectMocks
     private UserController userController;
+    @Mock
+    private TokenService tokenService;
+    @Mock
+    private SecurityFilter securityFilter;
 
     @BeforeEach
     void setUp() {
@@ -38,7 +44,7 @@ class UserControllerTest {
         @Test
         void devePermitirRegistrarUsuario() {
             UserDTO userDTO = UserUtilTest.createUserDTO();
-            when(userGateway.createUser(any())).thenReturn(new UserDTO());
+            when(userGateway.createUser(any())).thenReturn(userDTO);
             ResponseEntity<?> response = userController.createUser(userDTO);
             assertEquals(HttpStatus.CREATED, response.getStatusCode());
         }
@@ -50,6 +56,30 @@ class UserControllerTest {
             assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         }
     }
+    
+    @Nested
+    class LoginUser {
+        @Test
+        void devePermitirLogarUsuario() {
+            UserAuthRequest userAuth = UserUtilTest.createUserAuthRequest();
+            UserDTO userDTO = UserUtilTest.createUserDTO();
+            when(userGateway.findByLoginAndPassword(any(), any())).thenReturn(userDTO);
+            when(tokenService.generateToken(any())).thenReturn("123456789abcd");
+            userController.setTokenService(tokenService);
+            ResponseEntity<?> response = userController.login(userAuth);
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+        }
+
+        @Test
+        void deveValidarToken() {
+            User user = UserUtilTest.createUser();
+            when(securityFilter.validToken(any())).thenReturn(user);
+            userController.setSecurityFilter(securityFilter);
+            ResponseEntity<?> response = userController.validToken("123456789abcd");
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+        }
+    }
+
 
     @Nested
     class ReadUser {
@@ -110,7 +140,8 @@ class UserControllerTest {
     class DeleteUser {
         @Test
         void devePermitirApagarUsuario() {
-            UserDTO user =  UserUtilTest.createUserDTO();;
+            UserDTO user = UserUtilTest.createUserDTO();
+            ;
             when(userGateway.findById(user.getId())).thenReturn(user);
             ResponseEntity<?> response = userController.deleteUser(user.getId());
             assertEquals(HttpStatus.OK, response.getStatusCode());

@@ -4,7 +4,6 @@ import com.postech.msuser.dto.UserDTO;
 import com.postech.msuser.entity.User;
 import com.postech.msuser.gateway.UserGateway;
 import com.postech.msuser.request.UserAuthRequest;
-import com.postech.msuser.response.UserResponse;
 import com.postech.msuser.security.SecurityFilter;
 import com.postech.msuser.usecase.UserUseCase;
 import com.postech.msuser.security.TokenService;
@@ -14,17 +13,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Slf4j
 @RestController
@@ -32,9 +26,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserController {
 
+    @Setter
     @Autowired
     private TokenService tokenService;
 
+    @Setter
     @Autowired
     private SecurityFilter securityFilter;
 
@@ -135,7 +131,7 @@ public class UserController {
                 return new ResponseEntity<>("Login ou Senha inválida.", HttpStatus.BAD_REQUEST);
             }
             String token = tokenService.generateToken(userDTO);
-            return ResponseEntity.ok(new UserResponse(token));
+            return ResponseEntity.ok(token);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }

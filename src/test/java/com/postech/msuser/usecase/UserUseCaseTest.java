@@ -1,5 +1,6 @@
 package com.postech.msuser.usecase;
 
+import com.postech.msuser.dto.UserDTO;
 import com.postech.msuser.entity.User;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -17,6 +18,12 @@ public class UserUseCaseTest {
     @Test
     void testValidarUsuario_Null() {
         assertThrows(IllegalArgumentException.class, () -> UserUseCase.validarUsuario(null));
+    }
+    @Test
+    void testValidarUsuario_Role_Invalida() {
+        UserDTO userDTO = UserUtilTest.createUserDTO();
+        userDTO.setRole("INVALIDA");
+        assertThrows(IllegalArgumentException.class, () -> UserUseCase.validarUsuario(userDTO));
     }
 
     @Test

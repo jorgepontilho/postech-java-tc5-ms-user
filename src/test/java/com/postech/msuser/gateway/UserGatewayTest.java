@@ -2,6 +2,7 @@ package com.postech.msuser.gateway;
 
 import com.postech.msuser.dto.UserDTO;
 import com.postech.msuser.entity.User;
+import com.postech.msuser.exceptions.NotFoundException;
 import com.postech.msuser.repository.UserRepository;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -33,7 +34,7 @@ public class UserGatewayTest {
     }
 
     @Test
-    void testCreateUser_ValidInput_ReturnsUser() {
+    void deverSalvarUsuario() {
         User user = UserUtilTest.createUser();
         when(userRepository.save(any())).thenReturn(user);
         User result = userGateway.createUser(user.toDTO()).toEntity();
@@ -41,7 +42,7 @@ public class UserGatewayTest {
     }
 
     @Test
-    void testUpdateUser_ValidInput_ReturnsUser() {
+    void deveAtualizarUsuario() {
         User user = UserUtilTest.createUser();
         when(userRepository.save(any())).thenReturn(user);
         User result = userGateway.updateUser(user.toDTO()).toEntity();
@@ -49,7 +50,7 @@ public class UserGatewayTest {
     }
 
     @Test
-    void testDeleteUser_ValidInput_ReturnsTrue() {
+    void deveDeletarUsuario() {
         Random random = new Random();
         int id = random.nextInt();
         doNothing().when(userRepository).deleteById(id);
@@ -58,7 +59,7 @@ public class UserGatewayTest {
     }
 
     @Test
-    void testFindUser_ValidInput_ReturnsUser() {
+    void deveBuscarUsuario() {
         User expectedUser = UserUtilTest.createUser();
         int id = expectedUser.getId();
         when(userRepository.findById(id)).thenReturn(Optional.of(expectedUser));
@@ -67,7 +68,12 @@ public class UserGatewayTest {
     }
 
     @Test
-    void testListAllUsers_ReturnsListOfUsers() {
+    void deveBuscarUsuarioeNaoEncontrar() {
+        assertThrows(NotFoundException.class, () -> userGateway.findById(1).toEntity());
+    }
+
+    @Test
+    void deveBuscarListaUsuarios() {
         List<User> expectedUsers = List.of(UserUtilTest.createUser(), UserUtilTest.createUser());
         List<UserDTO> expectedUsersDTO = List.of(UserUtilTest.createUserDTO(), UserUtilTest.createUserDTO());
         when(userRepository.findAll()).thenReturn(expectedUsers);

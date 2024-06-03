@@ -8,9 +8,7 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class UserUseCase {
-
     public static void validarUsuario(UserDTO userDTO) {
         if (userDTO == null) {
             throw new IllegalArgumentException("Usuário inválido.");
