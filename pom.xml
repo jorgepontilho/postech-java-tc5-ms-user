@@ -14,7 +14,7 @@
 	<name>msuser</name>
 	<description>Tech Challenge 5 - Pos Tech JAVA Architecture - MS Users</description>
 	<properties>
-		<java.version>18</java.version>
+		<java.version>17</java.version>
 	</properties>
 	<dependencies>
 		<dependency>

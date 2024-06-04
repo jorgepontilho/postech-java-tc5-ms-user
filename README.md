@@ -15,6 +15,8 @@ Este projeto foi desenvolvido com as seguintes tecnologias e bibliotecas:
 - **Spring Boot Starter Data Jpa**: Para auxílio na persistência no Banco de Dados.
 - **Spring Boot Validation**: Para validação de campos.
 - **Springdoc OpenAPI**: Para documentação da API REST com Swagger.
+- **Spring Maven**: Para gestão de dependências.
+- **JWT - JSON Web Token - auth0**: Para gestão do token de segurança. 
 - **Lombok**: Para reduzir o código boilerplate, como getters e setters.
 - **MySQL**: banco de dados relacional.
 - **Docker**: utilização de container para criação de ambiente de execução local
