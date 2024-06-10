@@ -17,6 +17,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -61,7 +62,7 @@ public class UserController {
             @ApiResponse(description = "User Not Found", responseCode = "404", content = @Content(schema = @Schema(type = "string", example = "Usuário não encontrado.")))
     })
     public ResponseEntity<?> findUser(@PathVariable Integer id) {
-        log.info("GetMapping - FindUser");
+        log.info("GetMapping - findUser");
         UserDTO userDTO = userGateway.findById(id);
         if (userDTO != null) {
             return new ResponseEntity<>(userDTO, HttpStatus.OK);
@@ -74,6 +75,7 @@ public class UserController {
             @ApiResponse(description = "User's list", responseCode = "200"),
     })
     public ResponseEntity<?> listAllUsers() {
+        log.info("GetMapping - listAllUsers");
         return new ResponseEntity<>(userGateway.listAll(), HttpStatus.OK);
     }
 
