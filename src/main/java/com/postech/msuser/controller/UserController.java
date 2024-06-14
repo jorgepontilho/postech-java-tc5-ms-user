@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -38,12 +39,16 @@ public class UserController {
     private final UserGateway userGateway;
 
     @PostMapping("")
-    @Operation(summary = "Request for create a user", responses = {
+    @Operation(summary = "Create a new user with a DTO", responses = {
             @ApiResponse(description = "The new users was created", responseCode = "201", content = @Content(schema = @Schema(implementation = User.class))),
             @ApiResponse(description = "Fields Invalid", responseCode = "400", content = @Content(schema = @Schema(type = "string", example = "Campos inválidos ou faltando")))
     })
-    public ResponseEntity<?> createUser(@Valid @RequestBody UserDTO userDTO) {
+    public ResponseEntity<?> createUser(HttpServletRequest request, @Valid @RequestBody UserDTO userDTO) {
         log.info("PostMapping - createUser for user [{}]", userDTO.getUsername());
+        if (request.getAttribute("error") != null) {
+            return ResponseEntity.status((HttpStatusCode) request.getAttribute("error_code"))
+                    .body(request.getAttribute("error"));
+        }
         try {
             UserUseCase.validarUsuario(userDTO);
             if (userGateway.findByLogin(userDTO.getLogin()) != null) {
@@ -61,8 +66,12 @@ public class UserController {
             @ApiResponse(description = "The user by ID", responseCode = "200", content = @Content(schema = @Schema(implementation = User.class))),
             @ApiResponse(description = "User Not Found", responseCode = "404", content = @Content(schema = @Schema(type = "string", example = "Usuário não encontrado.")))
     })
-    public ResponseEntity<?> findUser(@PathVariable Integer id) {
+    public ResponseEntity<?> findUser(HttpServletRequest request, @PathVariable Integer id) {
         log.info("GetMapping - findUser");
+        if (request.getAttribute("error") != null) {
+            return ResponseEntity.status((HttpStatusCode) request.getAttribute("error_code"))
+                    .body(request.getAttribute("error"));
+        }
         UserDTO userDTO = userGateway.findById(id);
         if (userDTO != null) {
             return new ResponseEntity<>(userDTO, HttpStatus.OK);
@@ -71,11 +80,15 @@ public class UserController {
     }
 
     @GetMapping("")
-    @Operation(summary = "Request for list all users", responses = {
-            @ApiResponse(description = "User's list", responseCode = "200"),
+    @Operation(summary = "Get all users", responses = {
+            @ApiResponse(description = "List of all users", responseCode = "200"),
     })
-    public ResponseEntity<?> listAllUsers() {
+    public ResponseEntity<?> listAllUsers(HttpServletRequest request) {
         log.info("GetMapping - listAllUsers");
+        if (request.getAttribute("error") != null) {
+            return ResponseEntity.status((HttpStatusCode) request.getAttribute("error_code"))
+                    .body(request.getAttribute("error"));
+        }
         return new ResponseEntity<>(userGateway.listAll(), HttpStatus.OK);
     }
 
@@ -83,8 +96,12 @@ public class UserController {
     @Operation(summary = "Request for update a user by ID", responses = {
             @ApiResponse(description = "The users was updated", responseCode = "200", content = @Content(schema = @Schema(implementation = User.class)))
     })
-    public ResponseEntity<?> updateUser(@PathVariable Integer id, @RequestBody @Valid UserDTO userDTO) {
+    public ResponseEntity<?> updateUser(HttpServletRequest request, @PathVariable Integer id, @RequestBody @Valid UserDTO userDTO) {
         log.info("PutMapping - updateUser");
+        if (request.getAttribute("error") != null) {
+            return ResponseEntity.status((HttpStatusCode) request.getAttribute("error_code"))
+                    .body(request.getAttribute("error"));
+        }
         try {
             UserDTO userOld = userGateway.findById(id);
             UserUseCase.validarUsuario(userOld);
@@ -108,8 +125,12 @@ public class UserController {
             @ApiResponse(description = "The user was deleted", responseCode = "200", content = @Content(schema = @Schema(type = "string", example = "Usuário removido."))),
             @ApiResponse(description = "User Not Found", responseCode = "404", content = @Content(schema = @Schema(type = "string", example = "Usuário não encontrado.")))
     })
-    public ResponseEntity<?> deleteUser(@PathVariable Integer id) {
+    public ResponseEntity<?> deleteUser(HttpServletRequest request, @PathVariable Integer id) {
         log.info("DeleteMapping - deleteUser");
+        if (request.getAttribute("error") != null) {
+            return ResponseEntity.status((HttpStatusCode) request.getAttribute("error_code"))
+                    .body(request.getAttribute("error"));
+        }
         try {
             UserDTO userDTO = userGateway.findById(id);
             UserUseCase.validarDeleteUsuario(userDTO);

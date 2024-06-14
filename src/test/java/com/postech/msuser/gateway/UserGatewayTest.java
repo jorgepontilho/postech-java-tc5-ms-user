@@ -69,7 +69,7 @@ public class UserGatewayTest {
 
     @Test
     void deveBuscarUsuarioeNaoEncontrar() {
-        assertThrows(NotFoundException.class, () -> userGateway.findById(1).toEntity());
+        assertNull(userGateway.findById(99999));
     }
 
     @Test
