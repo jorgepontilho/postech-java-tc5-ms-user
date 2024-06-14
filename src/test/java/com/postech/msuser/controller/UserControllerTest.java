@@ -7,6 +7,7 @@ import com.postech.msuser.request.UserAuthRequest;
 import com.postech.msuser.security.SecurityFilter;
 import com.postech.msuser.security.TokenService;
 import com.postech.msuser.util.UserUtilTest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -21,6 +22,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class UserControllerTest {
@@ -43,16 +45,18 @@ class UserControllerTest {
     class CreatetUser {
         @Test
         void devePermitirRegistrarUsuario() {
+            HttpServletRequest request = mock(HttpServletRequest.class);
             UserDTO userDTO = UserUtilTest.createUserDTO();
             when(userGateway.createUser(any())).thenReturn(userDTO);
-            ResponseEntity<?> response = userController.createUser(userDTO);
+            ResponseEntity<?> response = userController.createUser(request, userDTO);
             assertEquals(HttpStatus.CREATED, response.getStatusCode());
         }
 
         @Test
         void deveGerarExcecaoQuandoRegistrarUsuarioNomeNulo() {
+            HttpServletRequest request = mock(HttpServletRequest.class);
             UserDTO userDTO = new UserDTO();
-            ResponseEntity<?> response = userController.createUser(userDTO);
+            ResponseEntity<?> response = userController.createUser(request, userDTO);
             assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         }
     }
@@ -85,31 +89,34 @@ class UserControllerTest {
     class ReadUser {
         @Test
         void devePermitirPesquisarUmUsuario() {
+            HttpServletRequest request = mock(HttpServletRequest.class);
             int id = 123;
             UserDTO user = new UserDTO();
             when(userGateway.findById(id)).thenReturn(user);
-            ResponseEntity<?> response = userController.findUser(id);
+            ResponseEntity<?> response = userController.findUser(request, id);
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertEquals(user, response.getBody());
         }
 
         @Test
         void devePermitirListarTodosUsuarios() {
+            HttpServletRequest request = mock(HttpServletRequest.class);
             List<UserDTO> users = new ArrayList<>();
             users.add(new UserDTO());
             users.add(new UserDTO());
 
             when(userGateway.listAll()).thenReturn(users);
-            ResponseEntity<List<UserDTO>> response = (ResponseEntity<List<UserDTO>>) userController.listAllUsers();
+            ResponseEntity<List<UserDTO>> response = (ResponseEntity<List<UserDTO>>) userController.listAllUsers(request);
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertEquals(users, response.getBody());
         }
 
         @Test
         void deveGerarExcecaoSeNaoEncontrarUsuario() {
+            HttpServletRequest request = mock(HttpServletRequest.class);
             int invalidId = 999;
             when(userGateway.findById(invalidId)).thenReturn(null);
-            ResponseEntity<?> response = userController.findUser(invalidId);
+            ResponseEntity<?> response = userController.findUser(request, invalidId);
             assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
             assertEquals("Usuário não encontrado.", response.getBody());
         }
@@ -119,19 +126,21 @@ class UserControllerTest {
     class UpdateUser {
         @Test
         void devePermitirAtualizarUsuario() {
+            HttpServletRequest request = mock(HttpServletRequest.class);
             UserDTO userNew = UserUtilTest.createUserDTO();
             when(userGateway.findById(userNew.getId())).thenReturn(userNew);
             when(userGateway.updateUser(userNew)).thenReturn(userNew);
 
-            ResponseEntity<?> response = userController.updateUser(userNew.getId(), UserUtilTest.createUserDTO());
+            ResponseEntity<?> response = userController.updateUser(request, userNew.getId(), UserUtilTest.createUserDTO());
             assertEquals(HttpStatus.OK, response.getStatusCode());
         }
 
         @Test
         void deveGerarExcecaoQuandoAtualizarUsuarioNãoEncontrado() {
+            HttpServletRequest request = mock(HttpServletRequest.class);
             int invalidId = 999;
             UserDTO userDTO = new UserDTO();
-            ResponseEntity<?> response = userController.updateUser(invalidId, userDTO);
+            ResponseEntity<?> response = userController.updateUser(request, invalidId, userDTO);
             assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         }
     }
@@ -140,19 +149,21 @@ class UserControllerTest {
     class DeleteUser {
         @Test
         void devePermitirApagarUsuario() {
+            HttpServletRequest request = mock(HttpServletRequest.class);
             UserDTO user = UserUtilTest.createUserDTO();
             ;
             when(userGateway.findById(user.getId())).thenReturn(user);
-            ResponseEntity<?> response = userController.deleteUser(user.getId());
+            ResponseEntity<?> response = userController.deleteUser(request, user.getId());
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertEquals("Usuário removido.", response.getBody());
         }
 
         @Test
         void deveGerarExcecaoQuandoDeletarUsuarioNãoEncontrado() {
+            HttpServletRequest request = mock(HttpServletRequest.class);
             int id = 999;
             when(userGateway.findById(id)).thenReturn(null);
-            ResponseEntity<?> response = userController.deleteUser(id);
+            ResponseEntity<?> response = userController.deleteUser(request, id);
             assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
             assertEquals("Usuário não encontrado.", response.getBody());
         }
