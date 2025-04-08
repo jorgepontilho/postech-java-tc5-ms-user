@@ -59,3 +59,6 @@ http://localhost:8080/swagger-ui/index.html
 App: http://localhost:8080
 
 MySQL: jdbc:mysql://localhost:3306/userdb
+
+## Git
+https://github.com/jorgepontilho/postech-java-tc5-ms-user
